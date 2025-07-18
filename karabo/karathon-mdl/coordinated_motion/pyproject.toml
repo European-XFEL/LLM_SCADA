@@ -1,0 +1,23 @@
+[build-system]
+# PEP 621–compliant build backend for setuptools
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "random_scan_device"
+version = "1.0.0"
+description = "Karabo middlelayer device for random scanning on X/Y motion axes"
+readme = "README.md"
+requires-python = ">=3.8,<4"
+# Middlelayer API dependency
+dependencies = [
+    # "karabo>=2.14.2"
+]
+
+[project.urls]
+"Source"        = "https://github.com/your-org/random_scan_device"
+"Documentation" = "https://github.com/your-org/random_scan_device#readme"
+
+[project.entry-points."karabo.middlelayer.devices"]
+# Device type key → module path:class
+RandomScanDevice = "random_scan_device.random_scan_device:RandomScanDevice"
