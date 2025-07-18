@@ -6,7 +6,9 @@ from karabo.middlelayer import (
     Configurable,
     Node,
     DaqDataType,
-    Double
+    Double,
+    Float,
+    EncodingType
 )
 import numpy as np
 
@@ -34,12 +36,18 @@ class CenterOfMassDevice(Device):
     # Define the schema for incoming images
     class InputSchema(Configurable):
         daqDataType = DaqDataType.TRAIN
-        image = Image(displayedName="Input Image")
+        image = Image(displayedName="Input Image",
+                      shape=(100, 120),
+                      dtype=Float,
+                      encoding=EncodingType.GRAY)
 
     # Define the schema for outgoing images
     class OutputSchema(Configurable):
         daqDataType = DaqDataType.TRAIN
-        image = Image(displayedName="Output Image")
+        image = Image(displayedName="Output Image",
+                      shape=(100, 120),
+                      dtype=Float,
+                      encoding=EncodingType.GRAY)
 
     # Input and output channels
     input = InputChannel(InputSchema, displayedName="Input")  # ([rtd.xfel.eu](https://rtd.xfel.eu/docs/howtomiddlelayer/en/latest/chap4/intro_advanced.html?utm_source=chatgpt.com))
@@ -48,7 +56,7 @@ class CenterOfMassDevice(Device):
     @InputChannel(raw=False, displayedName="Input")
     async def input(self, data, meta):
         """Handle incoming image, compute COM and imprint crosshair."""
-        img = data.image  # numpy ndarray
+        img = data.image.pixels # numpy ndarray
 
         # Compute center of mass and standard deviations
         y_idx, x_idx = np.indices(img.shape)
@@ -68,7 +76,7 @@ class CenterOfMassDevice(Device):
         self.sigmaY = sigma_y
 
         # Imprint a crosshair spanning 1/10 of each axis at the COM
-        out_img = img.copy()
+        out_img = img
         h, w = img.shape
         half_len_x = int(w * 0.1 / 2)
         half_len_y = int(h * 0.1 / 2)

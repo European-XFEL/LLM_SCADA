@@ -9,7 +9,9 @@ from karabo.middlelayer import (
     Image,
     DaqDataType,
     InputChannel,
-    OutputChannel
+    OutputChannel,
+    Float,
+    EncodingType
 )
 from karabo.middlelayer.testing import AsyncDeviceContext, event_loop
 
@@ -17,7 +19,7 @@ from center_of_mass_device import CenterOfMassDevice
 
 # Processor device configuration
 _DEVICE_ID_PROC = "ProcessDevice"
-_DEVICE_CONFIG_PROC = {"_deviceId_": _DEVICE_ID_PROC}
+_DEVICE_CONFIG_PROC = {"_deviceId_": _DEVICE_ID_PROC, "input": {"connectedOutputChannels": ["SourceDevice:output"]}}
 
 class GaussianSourceDevice(Device):
     """Device that emits a 2D Gaussian image with noise."""
@@ -25,12 +27,15 @@ class GaussianSourceDevice(Device):
 
     class OutputSchema(Configurable):
         daqDataType = DaqDataType.TRAIN
-        image = Image(displayedName="Gaussian Image")
+        image = Image(displayedName="Gaussian Image",
+                      shape=(100, 120),
+                      dtype=Float,
+                      encoding=EncodingType.GRAY)
 
     output = OutputChannel(OutputSchema, displayedName="Output")
 
     async def send_image(self, data: Hash):
-        self.output.schema.image = data.image
+        self.output.schema.image = data["image"]
         await self.output.writeData()
 
 class ReceiverDevice(Device):
@@ -40,13 +45,16 @@ class ReceiverDevice(Device):
 
     class InputSchema(Configurable):
         daqDataType = DaqDataType.TRAIN
-        image = Image(displayedName="Received Image")
+        image = Image(displayedName="Received Image",
+                      shape=(100, 120),
+                      dtype=Float,
+                      encoding=EncodingType.GRAY)
 
     input = InputChannel(InputSchema, displayedName="Input")
 
     @InputChannel(raw=False)
     async def input(self, data, meta):
-        self.last_image = data.image
+        self.last_image = data.image.pixels
 
 @pytest.mark.timeout(30)
 @pytest.mark.asyncio
@@ -54,7 +62,7 @@ async def test_center_of_mass_pipeline(event_loop):
     # Instantiate devices
     source = GaussianSourceDevice({"_deviceId_": "SourceDevice"})
     processor = CenterOfMassDevice(_DEVICE_CONFIG_PROC)
-    receiver = ReceiverDevice({"_deviceId_": "ReceiverDevice"})
+    receiver = ReceiverDevice({"_deviceId_": "ReceiverDevice", "input": {"connectedOutputChannels": [f"{_DEVICE_ID_PROC}:output"]}})
 
     # Set up a device context with all three
     devices = {
@@ -63,11 +71,9 @@ async def test_center_of_mass_pipeline(event_loop):
         "receiver": receiver,
     }
 
-    async with AsyncDeviceContext(devices=devices) as ctx:
-        # Wire the channels: source -> processor -> receiver
-        await ctx.connect("source.output", "processor.input")
-        await ctx.connect("processor.output", "receiver.input")
-
+    async with AsyncDeviceContext(**devices) as ctx:
+        
+        await asyncio.sleep(5)
         # Create a noisy 2D Gaussian test image
         x0, y0 = 50.5, 60.2
         sigma = 5.0
@@ -82,7 +88,7 @@ async def test_center_of_mass_pipeline(event_loop):
         # Send the image into the pipeline
         await source.send_image(data)
         # Allow the async pipeline to process
-        await asyncio.sleep(0.1)
+        await asyncio.sleep(5)
 
         # Validate that the processor computed the COM correctly
         x_est = processor.centerOfMassX
