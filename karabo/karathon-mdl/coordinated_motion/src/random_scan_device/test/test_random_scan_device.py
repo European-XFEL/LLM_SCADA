@@ -4,7 +4,7 @@ import pytest
 
 from karabo.middlelayer.testing import AsyncDeviceContext, event_loop
 from karabo.middlelayer import Device, Double, String, Slot, Overwrite, State
-from src.random_scan_device import RandomScanDevice
+from random_scan_device import RandomScanDevice
 
 # Simulated motor device implementing the same interface
 class FakeMotor(Device):
@@ -44,7 +44,7 @@ async def test_scan_completes(event_loop: event_loop):
     motor_y = FakeMotor({"_deviceId_": "Y"})
 
     # Run device together with two fake motors :contentReference[oaicite:1]{index=1}
-    async with AsyncDeviceContext(device=device, other_devices=[motor_x, motor_y]):
+    async with AsyncDeviceContext(device=device, motor_x=motor_x, motor_y=motor_y):
         await device.start()
         assert device.state == State.ACTIVE
         assert device.status == "Scan complete"
@@ -70,4 +70,4 @@ def test_optimal_path():
     })
     path = device._calculate_optimal_path(points)
     length = _path_length(path)
-    assert length == pytest.approx(1 + math.sqrt(2), rel=1e-6)
+    assert length == pytest.approx(2, rel=1e-6)

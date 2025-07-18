@@ -5,7 +5,7 @@ import itertools
 
 from karabo.middlelayer import (
     Device, Slot, String, Int32, Double, Overwrite, State,
-    connectDevice
+    connectDevice, Assignment
 )
 
 __version__ = "1.0"
@@ -18,10 +18,10 @@ class RandomScanDevice(Device):
     """
 
     motorXId = String(
-        assignment="MANDATORY",
+        assignment=Assignment.MANDATORY,
         description="Device ID of X motor")
     motorYId = String(
-        assignment="MANDATORY",
+        assignment=Assignment.MANDATORY,
         description="Device ID of Y motor")
 
     numPoints = Int32(
