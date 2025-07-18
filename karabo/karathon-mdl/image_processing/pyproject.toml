@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools>=61.0.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "center-of-mass-device"
+version = "1.0.0"
+description = "Karabo Middlelayer device for computing and annotating image center of mass."
+readme = "README.md"
+requires-python = ">=3.8"
+authors = [
+  { name = "Your Name", email = "you@example.com" },
+]
+dependencies = [
+  #"karabo.middlelayer>=2.16.0",
+  "numpy>=1.19",
+]
+
+[project.entry-points."karabo.middlelayer.devices"]
+center_of_mass_device = "center_of_mass_device:CenterOfMassDevice"
