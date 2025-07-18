@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"  # use setuptools as the build backend :contentReference[oaicite:0]{index=0}
+
+[project]
+name = "system-monitor"
+version = "2.0.0"
+description = "Karabo middlelayer device for monitoring its own CPU and memory usage"
+readme = "README.md"
+requires-python = ">=3.8"
+license = { text = "MIT" }
+authors = [
+  { name = "Your Name", email = "you@example.com" },
+]
+dependencies = [
+  # "karabo-middlelayer>=2.0",   # the Karabo middlelayer framework
+  "psutil>=5.8.0",              # for process CPU/memory sampling
+]
+
+[project.entry-points]          # PEP 621 entry-points table :contentReference[oaicite:1]{index=1}
+[project.entry-points."karabo.middlelayer.devices"]
+SystemMonitor = "system_monitor:SystemMonitor"
